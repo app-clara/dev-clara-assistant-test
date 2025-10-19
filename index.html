@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente Dental Clinic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .session-status {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .session-timer {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .assistant .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e5e9;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .phone-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .phone-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .phone-input button {
+            padding: 10px 20px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .phone-input button:hover {
+            background: #3a9bfc;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-area input:focus {
+            border-color: #4facfe;
+        }
+
+        .input-area button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-area button:hover {
+            opacity: 0.9;
+        }
+
+        .input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .tool-call {
+            background: #fff3cd !important;
+            border: 1px solid #ffeaa7 !important;
+            color: #856404 !important;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-active {
+            background: #28a745;
+        }
+
+        .status-inactive {
+            background: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 95vh;
+                border-radius: 15px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .session-timer {
+                position: static;
+                transform: none;
+                margin-top: 5px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🧠 Assistente Dental Clinic</h1>
+            <div class="session-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="sessionStatus">Sessão Inativa</span>
+            </div>
+            <div class="session-timer" id="sessionTimer" style="display: none;">
+                Expira em: <span id="timerCountdown">10:00</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-bubble">
+                    Olá! Sou seu assistente virtual da Dental Clinic. 
+                    Para começarmos, por favor insira seu número de telefone no formato 5511999999999.
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="phone-input" id="phoneInput">
+                <input type="text" id="phoneNumber" placeholder="5511999999999" maxlength="13">
+                <button onclick="setPhoneNumber()">Iniciar Sessão</button>
+            </div>
+            
+            <div class="input-area" id="messageInput" style="display: none;">
+                <input type="text" id="userMessage" placeholder="Digite sua mensagem..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" id="sendButton">Enviar</button>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        const CLOUD_FUNCTION_URL = 'https://chat-assistant-504763904926.southamerica-east1.run.app';
+        let sessionTimeout = null;
+        let countdownInterval = null;
+        let currentPhoneNumber = '';
+        let sessionExpiryTime = null;
+
+        // Elementos DOM
+        const chatMessages = document.getElementById('chatMessages');
+        const phoneInput = document.getElementById('phoneInput');
+        const messageInput = document.getElementById('messageInput');
+        const phoneNumberInput = document.getElementById('phoneNumber');
+        const userMessageInput = document.getElementById('userMessage');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const sessionStatus = document.getElementById('sessionStatus');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const sessionTimer = document.getElementById('sessionTimer');
+        const timerCountdown = document.getElementById('timerCountdown');
+
+        // Funções
+        function setPhoneNumber() {
+            const phone = phoneNumberInput.value.trim();
+            if (!phone) {
+                alert('Por favor, insira um número de telefone.');
+                return;
+            }
+
+            if (!/^\d{11,13}$/.test(phone)) {
+                alert('Por favor, insira um número válido (11-13 dígitos).');
+                return;
+            }
+
+            currentPhoneNumber = phone;
+            phoneInput.style.display = 'none';
+            messageInput.style.display = 'flex';
+            userMessageInput.focus();
+            
+            updateSessionStatus(true);
+            resetSessionTimer();
+            
+            addMessage('system', `Sessão iniciada para: ${phone}`);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const message = userMessageInput.value.trim();
+            if (!message || !currentPhoneNumber) return;
+
+            // Adiciona mensagem do usuário ao chat
+            addMessage('user', message);
+            userMessageInput.value = '';
+            sendButton.disabled = true;
+
+            // Mostra indicador de digitação
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone_number: currentPhoneNumber,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro na requisição');
+                }
+
+                // Adiciona resposta do assistente
+                addMessage('assistant', data.response);
+                
+                // Atualiza status da sessão
+                updateSessionStatus(data.session_active);
+                
+                // Reinicia o timer da sessão
+                resetSessionTimer();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                addMessage('assistant', `Desculpe, ocorreu um erro: ${error.message}`);
+            } finally {
+                hideTypingIndicator();
+                sendButton.disabled = false;
+                userMessageInput.focus();
+            }
+        }
+
+        function addMessage(sender, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            // Detecta e formata chamadas de tool
+            if (content.includes('🔧') || content.includes('🛠️')) {
+                bubbleDiv.classList.add('tool-call');
+            }
+            
+            bubbleDiv.innerHTML = content.replace(/\n/g, '<br>');
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            bubbleDiv.appendChild(timeDiv);
+            messageDiv.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll para a última mensagem
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function updateSessionStatus(active) {
+            if (active) {
+                sessionStatus.textContent = 'Sessão Ativa';
+                statusIndicator.className = 'status-indicator status-active';
+                sessionTimer.style.display = 'block';
+            } else {
+                sessionStatus.textContent = 'Sessão Expirada';
+                statusIndicator.className = 'status-indicator status-inactive';
+                sessionTimer.style.display = 'none';
+            }
+        }
+
+        function resetSessionTimer() {
+            // Limpa timers existentes
+            if (sessionTimeout) clearTimeout(sessionTimeout);
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            // Define novo tempo de expiração (10 minutos)
+            sessionExpiryTime = Date.now() + 10 * 60 * 1000;
+            
+            // Inicia contagem regressiva
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // Timer para expirar sessão
+            sessionTimeout = setTimeout(expireSession, 10 * 60 * 1000);
+        }
+
+        function updateCountdown() {
+            if (!sessionExpiryTime) return;
+            
+            const now = Date.now();
+            const timeLeft = Math.max(0, sessionExpiryTime - now);
+            
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            timerCountdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft === 0) {
+                expireSession();
+            }
+        }
+
+        function expireSession() {
+            updateSessionStatus(false);
+            clearInterval(countdownInterval);
+            
+            addMessage('system', 'Sessão expirada por inatividade. Por favor, reinicie a sessão com seu número de telefone.');
+            
+            // Mostra input de telefone novamente
+            phoneInput.style.display = 'flex';
+            messageInput.style.display = 'none';
+            currentPhoneNumber = '';
+        }
+
+        // Health check na inicialização
+        async function checkHealth() {
+            try {
+                const response = await fetch(CLOUD_FUNCTION_URL.replace('chat_assistant', 'health_check'));
+                const data = await response.json();
+                console.log('Health check:', data);
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            checkHealth();
+            userMessageInput.addEventListener('input', function() {
+                // Reinicia o timer a cada interação do usuário
+                if (currentPhoneNumber) {
+                    resetSessionTimer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
