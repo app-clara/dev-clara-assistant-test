@@ -421,7 +421,7 @@
                 bubbleDiv.classList.add('tool-call');
             }
             
-            bubbleDiv.innerHTML = content.replace(/\n/g, '<br>').replace('**', '<br>');
+            bubbleDiv.innerHTML = content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
